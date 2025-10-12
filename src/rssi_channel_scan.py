@@ -175,7 +175,7 @@ async def main():
     parser.add_argument("--ssid", default=None, help="Optional Filter by SSID")
     args = parser.parse_args()
     
-    q = asyncio.Queue()
+    q = asyncio.Queue(maxsize=2)
     prod = asyncio.create_task(producer(q, args.iface, args.interval, args.ssid))
     cons = asyncio.create_task(consumer(q, args.out))
     
