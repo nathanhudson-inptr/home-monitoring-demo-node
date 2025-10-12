@@ -15,7 +15,7 @@ ssid_arg=()
 
 exec python3 /app/rssi_pandas_scan.py \
   --if "${IFACE:-wlan0}" \
-  --interval "${INTERVAL:-5}" \
+  --interval "${INTERVAL:-1}" \
   --out "${OUT:-/data/wifi_rssi_log.csv}" \
   "${ssid_arg[@]}"
 
