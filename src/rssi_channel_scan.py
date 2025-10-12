@@ -125,6 +125,7 @@ async def producer(queue: asyncio.Queue, iface: str,
             if ssid_filter:
                 recs = [r for r in recs if r["ssid"] == ssid_filter]
             await queue.put((ts, recs))
+            print(f"[debug] producer queued batch at {ts} | current queue size: {queue.qsize()}")
         except Exception as e:
             print(f"[producer] {e}", file=sys.stderr)
         await asyncio.sleep(interval)
