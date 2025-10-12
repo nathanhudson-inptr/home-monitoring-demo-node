@@ -6,7 +6,7 @@ services:
     cap_add: [ "NET_ADMIN", "NET_RAW" ]
     environment:
       TZ: Europe/London
-    command: ["python3","/app/rssi_pandas_scan.py","--if","wlan0","--interval","2","--out","/data/wifi_rssi_log.csv"]
+    command: ["python3","/app/rssi_pandas_scan.py","--if","wlan0","--interval","5","--out","/data/wifi_rssi_log.csv"]
     volumes:
       - /home/node1/rssi-data:/data
     restart: unless-stopped

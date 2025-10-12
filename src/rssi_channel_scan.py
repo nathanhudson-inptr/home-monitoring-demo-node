@@ -170,7 +170,7 @@ async def main():
     """
     parser = argparse.ArgumentParser(description="Asyncronous Wi-Fi RSSI Logger")
     parser.add_argument("--if", dest="iface", default="wlan0", help="Interface to scan (default: wlan0)")
-    parser.add_argument("--interval", type=float, default=1.0, help="Scan interval seconds (default: 1)")
+    parser.add_argument("--interval", type=float, default=5.0, help="Scan interval seconds (default: 1)")
     parser.add_argument("--out", default="/data/wifi_rssi_log.csv", help="Output file (default: /data/wifi_rssi_log.csv)")
     parser.add_argument("--ssid", default=None, help="Optional Filter by SSID")
     args = parser.parse_args()

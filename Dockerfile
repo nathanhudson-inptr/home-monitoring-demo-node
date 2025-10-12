@@ -20,7 +20,7 @@ ssid_arg=()
 
 exec python3 /app/rssi_pandas_scan.py \
   --if "${IFACE:-wlan0}" \
-  --interval "${INTERVAL:-2}" \
+  --interval "${INTERVAL:-5}" \
   --out "${OUT:-/data/wifi_rssi_log.csv}" \
   "${ssid_arg[@]}"
 SH
@@ -34,7 +34,7 @@ COPY ./src/rssi_channel_scan.py /app/rssi_pandas_scan.py
 
 # Default env (override at runtime)
 ENV IFACE=wlan0 \
-    INTERVAL=2 \
+    INTERVAL=5 \
     OUT=/data/wifi_rssi_log.csv
 
 ENTRYPOINT ["/app/entrypoint.sh"]
