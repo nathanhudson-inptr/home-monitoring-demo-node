@@ -4,7 +4,7 @@
 # This script is used to run the RSSI channel scanning script
 # It takes the following environment variables:
 #   - IFACE: The Wi-Fi interface to use for scanning, default is "wlan0"
-#   - INTERVAL: The interval between scans in seconds, default is 5
+#   - INTERVAL: The interval between scans in seconds, default is 1
 #   - OUT: The file to write the log to, default is "/data/wifi_rssi_log.csv"
 #   - SSID: The optional SSID to log, if not provided all networks will be logged
 
