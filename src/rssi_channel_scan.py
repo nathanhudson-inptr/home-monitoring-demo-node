@@ -1,6 +1,6 @@
 import asyncio, os, re, csv, sys, signal, argparse
 from datetime import datetime
-import pandas as pd
+#import pandas as pd
 from typing import Dict, List
 
 #----Regular Expressions----#
