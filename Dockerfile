@@ -30,7 +30,7 @@ RUN chmod +x /app/entrypoint.sh
 COPY ./src/rssi_channel_scan.py /app/rssi_pandas_scan.py
 
 # --- Install deps (split so pandas errors are obvious)
-RUN pip install --no-cache-dir pandas
+#RUN pip install --no-cache-dir pandas
 
 # Default env (override at runtime)
 ENV IFACE=wlan0 \
