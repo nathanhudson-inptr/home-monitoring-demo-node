@@ -1,28 +1,40 @@
 # Dockerfile
 FROM python:3.11-slim
 
-# System tools needed for scanning and basics
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Minimal tools needed for scanning
 RUN apt-get update && apt-get install -y --no-install-recommends \
       iw iproute2 procps ca-certificates tzdata \
     && rm -rf /var/lib/apt/lists/*
 
-# App files
 WORKDIR /app
-# (Put your Python script alongside this Dockerfile)
-COPY ./src/rssi_pandas_scan.py /app/rssi_pandas_scan.py
-COPY ./entrypoint.sh        /app/entrypoint.sh
+
+# --- Create entrypoint directly in the image (avoids CRLF + missing file issues)
+RUN set -euo pipefail; cat > /app/entrypoint.sh <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+ssid_arg=()
+[[ -n "${SSID:-}" ]] && ssid_arg=(--ssid "$SSID")
+
+exec python3 /app/rssi_pandas_scan.py \
+  --if "${IFACE:-wlan0}" \
+  --interval "${INTERVAL:-5}" \
+  --out "${OUT:-/data/wifi_rssi_log.csv}" \
+  "${ssid_arg[@]}"
+SH
 RUN chmod +x /app/entrypoint.sh
 
-# Python deps
-RUN pip install --no-cache-dir -r requirements.txt
+# --- Copy your Python script
+COPY ./src/rssi_channel_scan.py /app/rssi_pandas_scan.py
 
-# Config via env (you can override at `docker run`)
-ENV IFACE=wlan0
-ENV INTERVAL=5
-# We'll write logs to a bind-mounted /data so they persist on the host
-ENV OUT=/data/wifi_rssi_log.csv
-# Optional: only log a single SSID; leave empty to log all
-ENV SSID=
+# --- Install deps (split so pandas errors are obvious)
+RUN pip install --no-cache-dir pandas
 
-# Run as root so `iw scan` can work (needs netadmin caps). We’ll scope with caps at runtime.
+# Default env (override at runtime)
+ENV IFACE=wlan0 \
+    INTERVAL=5 \
+    OUT=/data/wifi_rssi_log.csv
+
 ENTRYPOINT ["/app/entrypoint.sh"]
