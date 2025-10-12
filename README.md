@@ -13,6 +13,7 @@ A node (Raspberry Pi 3B+) with integrated sensors, used to help monitor home act
 3. On Portainer, create a new stack, copy and paste `docker-compose.yml` (from this repo)
 4. Deploy
 
-### Montoring
+### Monitoring
 You can then monitor the .csv output with the following CLI command: `watch -n 1 'wc -l /home/node1/rssi-data/wifi_rssi_log.csv; tail -n 40 /home/node1/rssi-data/wifi_rssi_log.csv'`
+This will display the latest 40 entries (logs), these should update periodically (approx. every 5 seconds) 
 
