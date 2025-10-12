@@ -34,7 +34,7 @@ COPY ./src/rssi_channel_scan.py /app/rssi_pandas_scan.py
 
 # Default env (override at runtime)
 ENV IFACE=wlan0 \
-    INTERVAL=5 \
+    INTERVAL=2 \
     OUT=/data/wifi_rssi_log.csv
 
 ENTRYPOINT ["/app/entrypoint.sh"]
