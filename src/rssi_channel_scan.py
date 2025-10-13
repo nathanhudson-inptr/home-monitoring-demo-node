@@ -129,7 +129,7 @@ async def producer(queue: asyncio.Queue, iface: str,
     while True:
         ts = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         try:
-            recs = await run_iw_scan(iface, timeout=10.0)
+            recs = await run_iw_scan(iface, timeout=20.0)
             if ssid_filter:
                 recs = [r for r in recs if r["ssid"] == ssid_filter]
             await queue.put((ts, recs))
