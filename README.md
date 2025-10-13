@@ -45,5 +45,5 @@ Run `sudo docker logs -f <container name>` to display program output
 1. Navigate to `cd ~/rssi-data/`
 2. Host an HTTP Server using `python3 -m http.server 8080`
 3. Using a web browser (Chrome, Firefox, Safari), navigate to `http://<ipp-address-of-rpi>:8080`
-4. Click on `wifi_rssi_log.csv` to download
+4. Right-click on `wifi_rssi_log.csv` to download
 
