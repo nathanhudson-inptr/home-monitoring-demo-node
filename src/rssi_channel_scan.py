@@ -71,7 +71,7 @@ def parse_block(lines: List) -> dict:
     return rec
 
 #----Core Async Tasks----
-async def run_iw_scan(interface: str, timeout: float=10.0) -> list[dict]:
+async def run_iw_scan(interface: str, timeout: float=20.0) -> list[dict]:
     """
     Run an iwlist scan to get a list of Wi-Fi networks.
 
@@ -97,8 +97,7 @@ async def run_iw_scan(interface: str, timeout: float=10.0) -> list[dict]:
     except asyncio.TimeoutError:
         try:
             proc.send_signal(signal.SIGKILL)
-        except ProcessLookupError:
-            pass
+        except ProcessLookupError: pass
         raise RuntimeError(f"iwlist scan timed out after {timeout} seconds")
     if proc.returncode != 0:
         raise RuntimeError(f"iwlist scan failed ({proc.returncode}): {err.decode(errors='ignore')}")
@@ -110,6 +109,7 @@ async def run_iw_scan(interface: str, timeout: float=10.0) -> list[dict]:
            block = []
        block.append(line)
     if block: recs.append(parse_block(block))
+    print(f"[producer] Found {len(recs)} networks")
     return [r for r in recs if r.get("bssid") and r.get("signal_dbm") is not None]
 
 async def producer(queue: asyncio.Queue, iface: str, 
@@ -166,6 +166,7 @@ async def consumer(queue: asyncio.Queue, out_path: str) -> None:
                         r.get("channel")
                     ])
                 f.flush()
+                print(f"[consumer] wrote {len(recs)} records to {out_path}")
             except Exception as e:
                 print(f"[consumer] {e}")
             finally:
@@ -192,6 +193,7 @@ async def main():
     parser.add_argument("--interval", type=float, default=5.0, help="Scan interval seconds (default: 1)")
     parser.add_argument("--out", default="/data/wifi_rssi_log.csv", help="Output file (default: /data/wifi_rssi_log.csv)")
     parser.add_argument("--ssid", default=None, help="Optional Filter by SSID")
+    parser.add_argument("--location", default=None, help="Optional Add Location Tag")
     args = parser.parse_args()
     
     q = asyncio.Queue(maxsize=2)
