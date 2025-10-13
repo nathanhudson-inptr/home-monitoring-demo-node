@@ -38,7 +38,7 @@ def freq_to_channel(freq_mhz: int) -> int | None:
     if 5000 <= freq_mhz <= 5900: return (freq_mhz - 5000) // 5
     return None
 
-def parse_block(lines: List) -> Dict:
+def parse_block(lines: List) -> dict:
     """
     Parse a block of output from the iwlist command into a dictionary
     containing Wi-Fi network information.
@@ -71,7 +71,7 @@ def parse_block(lines: List) -> Dict:
     return rec
 
 #----Core Async Tasks----
-async def run_iw_scan(interface: str) -> List:
+async def run_iw_scan(interface: str, timeout: float=10.0) -> list[dict]:
     """
     Run an iwlist scan to get a list of Wi-Fi networks.
 
@@ -92,10 +92,17 @@ async def run_iw_scan(interface: str) -> List:
         stdout=asyncio.subprocess.PIPE, 
         stderr=asyncio.subprocess.PIPE
     )
-    out, err = await proc.communicate()
+    try:
+        out, err = await asyncio.wait_for(proc.communicate(), timeout=timeout)
+    except asyncio.TimeoutError:
+        try:
+            proc.send_signal(signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        raise RuntimeError(f"iwlist scan timed out after {timeout} seconds")
     if proc.returncode != 0:
-        raise Exception(f"iwlist scan failed with exit code {proc.returncode}: {err.decode()}")
-    lines = out.decode().splitlines()
+        raise RuntimeError(f"iwlist scan failed ){proc.returncode}): {err.decode(errors="ignore")}")
+    lines = out.decode(errors="ignore").splitlines()
     recs, block = [], []
     for line in lines:
        if BSS_RE.match(line):
@@ -118,16 +125,21 @@ async def producer(queue: asyncio.Queue, iface: str,
         interval: The interval between scans in seconds.
         ssid_filter: The optional SSID to filter the results by.
     """
+    backoff = 1.0 #seconds
     while True:
         ts = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         try:
-            recs = await run_iw_scan(iface)
+            recs = await run_iw_scan(iface, timeout=10.0)
             if ssid_filter:
                 recs = [r for r in recs if r["ssid"] == ssid_filter]
             await queue.put((ts, recs))
+            backoff = 1.0
             print(f"[debug] producer queued batch at {ts} | current queue size: {queue.qsize()}")
+            await asyncio.sleep(max(0.1, interval))
         except Exception as e:
             print(f"[producer] {e}", file=sys.stderr)
+            await asyncio.sleep(backoff)
+            backoff = min(backoff * 2.0, 30.0)
         await asyncio.sleep(interval)
         
 
@@ -140,19 +152,25 @@ async def consumer(queue: asyncio.Queue, out_path: str) -> None:
             writer.writerow(["timestamp-utc", "iface", "bssid", "ssid", "signal_dbm", "freq_mhz", "channel"])
             f.flush()
         while True:
-            ts, recs = await queue.get()
-            for r in recs:
-                writer.writerow([
-                    ts,
-                    os.environ.get("IFACE", "wlan0"),
-                    r.get("bssid"), 
-                    r.get("ssid"),
-                    r.get("signal_dbm"),
-                    r.get("freq_mhz"),
-                    r.get("channel")
-                ])
-            f.flush()
-            queue.task_done()
+            item = await queue.get()
+            try:
+                ts, recs = item
+                for r in recs:
+                    writer.writerow([
+                        ts,
+                        os.environ.get("IFACE", "wlan0"),
+                        r.get("bssid"), 
+                        r.get("ssid"),
+                        r.get("signal_dbm"),
+                        r.get("freq_mhz"),
+                        r.get("channel")
+                    ])
+                f.flush()
+            except Exception as e:
+                print(f"[consumer] {e}")
+            finally:
+                queue.task_done()
+            await asyncio.sleep(0.01)
             
 #----Main----
 async def main():
