@@ -201,7 +201,7 @@ async def main():
     parser.add_argument("--interval", type=float, default=5.0, help="Scan interval seconds (default: 1)")
     parser.add_argument("--out", default="/data/wifi_rssi_log.csv", help="Output file (default: /data/wifi_rssi_log.csv)")
     parser.add_argument("--ssid", default=None, help="Optional Filter by SSID")
-    parser.add_argument("--location", type=str, default=None, help="Optional Location Tag")
+    parser.add_argument("--location", default=None, type=str, help="Optional Location Tag")
     args = parser.parse_args()
     print(f"[main] iface: {args.iface} | interval: {args.interval} | out: {args.out} | location: {args.location} | ssid: {args.ssid}") 
     
