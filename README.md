@@ -39,3 +39,11 @@ This will display the latest 40 entries (logs), these should update periodically
 Run `docker ps -a` to get the name of and check container is `Up`
 
 Run `sudo docker logs -f [container name]` to display program output
+
+### Extracting Data
+*WARNING: HTTP is insecure, only use on known safe LAN networks* 
+1. Navigate to `cd ~/rssi-data/`
+2. Host an HTTP Server using `python3 -m http.server 8080`
+3. Using a web browser (Chrome, Firefox, Safari), navigate to `http://<ipp-address-of-rpi>:8080`
+4. Click on `wifi_rssi_log.csv` to download
+
