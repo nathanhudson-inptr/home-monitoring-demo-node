@@ -28,7 +28,7 @@ A node (Raspberry Pi 3B+) with integrated sensors, used to help monitor home act
 
    *Options: Replace with preferred value or comment out `#` if not used*
    - `"your-ssid"` *Filter by SSID (default: None)*
-   - `"node-location"` *Add Location Tag*
+   - `"node-location"` *Add Location Tag (default: None)*
 4. Or, copy, paste and run the `docker-compose.yml` (found in this repo)
 
 ### Monitoring
@@ -38,7 +38,7 @@ This will display the latest 40 entries (logs), these should update periodically
 
 Run `docker ps -a` to get the name of and check container is `Up`
 
-Run `sudo docker logs -f [container name]` to display program output
+Run `sudo docker logs -f <container name>` to display program output
 
 ### Extracting Data
 *WARNING: HTTP is insecure, only use on known safe LAN networks* 
