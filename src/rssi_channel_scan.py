@@ -143,13 +143,13 @@ async def producer(queue: asyncio.Queue, iface: str,
         await asyncio.sleep(interval)
         
 
-async def consumer(queue: asyncio.Queue, out_path: str) -> None:
+async def consumer(queue: asyncio.Queue, out_path: str, location: str=None) -> None:
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
     wrote_header = os.path.exists(out_path) and os.path.getsize(out_path) > 0
     with open(out_path, "a", newline="") as f:
         writer = csv.writer(f)
         if not wrote_header:
-            writer.writerow(["timestamp-utc", "iface", "bssid", "ssid", "signal_dbm", "freq_mhz", "channel"])
+            writer.writerow(["timestamp-utc", "location", "iface", "bssid", "ssid", "signal_dbm", "freq_mhz", "channel"])
             f.flush()
         while True:
             item = await queue.get()
@@ -158,6 +158,7 @@ async def consumer(queue: asyncio.Queue, out_path: str) -> None:
                 for r in recs:
                     writer.writerow([
                         ts,
+                        location,
                         os.environ.get("IFACE", "wlan0"),
                         r.get("bssid"), 
                         r.get("ssid"),
@@ -175,30 +176,38 @@ async def consumer(queue: asyncio.Queue, out_path: str) -> None:
             
 #----Main----
 async def main():
+
     """
-    Main entry point for the asynchronous Wi-Fi RSSI logger.
+    Main entry point for the script.
 
-    This function parses the command line arguments, sets up the producer
-    and consumer tasks, and sets up signal handlers for SIGINT and
-    SIGTERM to stop the tasks.
+    This function sets up the producer and consumer tasks, and adds signal
+    handlers for SIGINT and SIGTERM to stop the tasks.
 
-    The producer task runs an iwlist scan at a given interval and puts
-    the results into a queue. The consumer task takes the results from the
-    queue and writes them to a CSV file.
+    The producer task runs the `producer` function, which scans for Wi-Fi
+    networks using the `iwlist` command, and sends the results to the consumer
+    task using the `queue`.
 
-    The tasks are cancelled when a signal is received, and the program exits.
+    The consumer task runs the `consumer` function, which writes the results
+    to a CSV file.
+
+    The signal handlers are added to the event loop using
+    `loop.add_signal_handler()`. When a signal is received, the `_stop`
+    function is called, which sets the `stop` event.
+
+    The `stop` event is used to cancel the producer and consumer tasks.
     """
     parser = argparse.ArgumentParser(description="Asyncronous Wi-Fi RSSI Logger")
     parser.add_argument("--if", dest="iface", default="wlan0", help="Interface to scan (default: wlan0)")
     parser.add_argument("--interval", type=float, default=5.0, help="Scan interval seconds (default: 1)")
     parser.add_argument("--out", default="/data/wifi_rssi_log.csv", help="Output file (default: /data/wifi_rssi_log.csv)")
     parser.add_argument("--ssid", default=None, help="Optional Filter by SSID")
-    parser.add_argument("--location", default=None, help="Optional Add Location Tag")
+    parser.add_argument("--location", type=str, default=None, help="Optional Location Tag")
     args = parser.parse_args()
+    print(f"[main] iface: {args.iface} | interval: {args.interval} | out: {args.out} | location: {args.location} | ssid: {args.ssid}") 
     
     q = asyncio.Queue(maxsize=2)
     prod = asyncio.create_task(producer(q, args.iface, args.interval, args.ssid))
-    cons = asyncio.create_task(consumer(q, args.out))
+    cons = asyncio.create_task(consumer(q, args.out, args.location))
     
     """
     Set up signal handlers for SIGINT and SIGTERM to stop the producer

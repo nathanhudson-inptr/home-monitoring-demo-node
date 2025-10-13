@@ -1,12 +1,16 @@
 services:
   rssi-logger:
     image: nathanhudsoninptr/home-monitoring-node:latest
-    pull_policy: always
     network_mode: host
-    cap_add: [ "NET_ADMIN", "NET_RAW" ]
-    environment:
-      TZ: Europe/London
-    command: ["python3","/app/rssi_pandas_scan.py","--if","wlan0","--interval","5","--out","/data/wifi_rssi_log.csv"]
+    cap_add: ["NET_ADMIN","NET_RAW"]
+    restart: unless-stopped
     volumes:
       - /home/node1/rssi-data:/data
-    restart: unless-stopped
+    environment:
+      TZ: Europe/London
+      IFACE: wlan0              # interface to monitor (default on rpi: wlan0)
+      INTERVAL: "5"             # sampling interval (default: 5) (note: numbers must be in "")
+      OUT: /data/wifi_rssi_log.csv  # output file
+      # Optional filters/tags:
+      SSID: "your-ssid"         # [optional] filter by ssid (must be in "")
+      LOCATION: "your-location"      # [optional] add node-location tag (must be in "")
