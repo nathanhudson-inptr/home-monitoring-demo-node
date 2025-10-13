@@ -8,8 +8,8 @@ A node (Raspberry Pi 3B+) with integrated sensors, used to help monitor home act
 4. (Optional) SSH Setup with RPi to allow for CLI Remote access to RPI
 
 ### Getting Started
-1. Create /rssi-data/ directory using `mkdir /rssi-data/`
-2. Create an empty .csv file, `touch /rssi-data/wifi_rssi_log.csv`
+1. Create ~/rssi-data/ directory using `mkdir ~/rssi-data/`
+2. Create an empty .csv file, `touch ~/rssi-data/wifi_rssi_log.csv`
 3. Run `docker run -d \
   --name rssi-logger \
   --pull always \
