@@ -36,4 +36,6 @@ You can then monitor the .csv output with the following CLI command: `watch -n 1
 
 This will display the latest 40 entries (logs), these should update periodically (approx. every second) 
 
-Run `docker ps -a` to check container is `Up`
+Run `docker ps -a` to get the name of and check container is `Up`
+
+Run `sudo docker logs -f [container name]` to display program output
