@@ -101,7 +101,7 @@ async def run_iw_scan(interface: str, timeout: float=10.0) -> list[dict]:
             pass
         raise RuntimeError(f"iwlist scan timed out after {timeout} seconds")
     if proc.returncode != 0:
-        raise RuntimeError(f"iwlist scan failed ){proc.returncode}): {err.decode(errors="ignore")}")
+        raise RuntimeError(f"iwlist scan failed ({proc.returncode}): {err.decode(errors='ignore')}")
     lines = out.decode(errors="ignore").splitlines()
     recs, block = [], []
     for line in lines:
