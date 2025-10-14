@@ -71,7 +71,7 @@ def parse_block(lines: List) -> dict:
     return rec
 
 #----Core Async Tasks----
-async def run_iw_scan(interface: str, timeout: float=20.0) -> list[dict]:
+async def run_iw_scan(interface: str, timeout: float=4.0) -> list[dict]:
     """
     Run an iwlist scan to get a list of Wi-Fi networks.
 
@@ -88,10 +88,11 @@ async def run_iw_scan(interface: str, timeout: float=20.0) -> list[dict]:
             - "channel": The Wi-Fi channel number of the network, if a mapping exists.
     """
     proc = await asyncio.create_subprocess_exec(
-        "iw", "dev", interface, "scan", 
+        "iw", "dev", interface, "scan",
         stdout=asyncio.subprocess.PIPE, 
         stderr=asyncio.subprocess.PIPE
-    )
+    ) #Only scans in the 2.4 GHz band "iw", "dev", interface, "scan",
+    ##"freq", "2412", "2437", "2462", "2484",
     try:
         out, err = await asyncio.wait_for(proc.communicate(), timeout=timeout)
     except asyncio.TimeoutError:
@@ -129,7 +130,7 @@ async def producer(queue: asyncio.Queue, iface: str,
     while True:
         ts = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         try:
-            recs = await run_iw_scan(iface, timeout=20.0)
+            recs = await run_iw_scan(iface, timeout=4.0)
             if ssid_filter:
                 recs = [r for r in recs if r["ssid"] == ssid_filter]
             await queue.put((ts, recs))
@@ -143,10 +144,12 @@ async def producer(queue: asyncio.Queue, iface: str,
         await asyncio.sleep(interval)
         
 
-async def consumer(queue: asyncio.Queue, out_path: str, location: str=None) -> None:
+async def consumer(queue: asyncio.Queue, out_path: str, location: str=None, 
+                   flush_every: int=5, buffer_bytes: int=1_048_576) -> None:
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
     wrote_header = os.path.exists(out_path) and os.path.getsize(out_path) > 0
-    with open(out_path, "a", newline="") as f:
+    pending = 0
+    with open(out_path, "a", newline="", buffering=buffer_bytes) as f:
         writer = csv.writer(f)
         if not wrote_header:
             writer.writerow(["timestamp-utc", "location", "iface", "bssid", "ssid", "signal_dbm", "freq_mhz", "channel"])
@@ -166,12 +169,17 @@ async def consumer(queue: asyncio.Queue, out_path: str, location: str=None) -> N
                         r.get("freq_mhz"),
                         r.get("channel")
                     ])
-                f.flush()
-                print(f"[consumer] wrote {len(recs)} records to {out_path}")
+                pending += 1
+                if pending >= flush_every:
+                    f.flush()
+                    print(f"[consumer] wrote {pending*len(recs)} records to {out_path}")
+                    pending = 0
+                print(f"[consumer] queued {len(recs)} records in buffer, pending write to {out_path}")
             except Exception as e:
                 print(f"[consumer] {e}")
             finally:
                 queue.task_done()
+                await asyncio.sleep(0.01)
             await asyncio.sleep(0.01)
             
 #----Main----

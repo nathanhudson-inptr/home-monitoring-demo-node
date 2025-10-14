@@ -10,7 +10,7 @@ services:
     environment:
       TZ: Europe/London
       IFACE: wlan0              # interface to monitor (default on rpi: wlan0)
-      INTERVAL: "5"             # sampling interval (default: 5) (note: numbers must be in "")
+      INTERVAL: "0.1"             # sampling interval (default: 5) (note: numbers must be in "")
       OUT: /data/wifi_rssi_log.csv  # output file
       # Optional filters/tags:
       SSID: "your-ssid"         # [optional] filter by ssid (must be in "")
