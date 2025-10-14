@@ -149,6 +149,7 @@ async def consumer(queue: asyncio.Queue, out_path: str, location: str=None,
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
     wrote_header = os.path.exists(out_path) and os.path.getsize(out_path) > 0
     pending = 0
+    pending_rows = 0
     with open(out_path, "a", newline="", buffering=buffer_bytes) as f:
         writer = csv.writer(f)
         if not wrote_header:
@@ -170,10 +171,12 @@ async def consumer(queue: asyncio.Queue, out_path: str, location: str=None,
                         r.get("channel")
                     ])
                 pending += 1
+                pending_rows += len(recs)
                 if pending >= flush_every:
                     f.flush()
-                    print(f"[consumer] wrote {pending*len(recs)} records to {out_path}")
+                    print(f"[consumer] wrote {pending_rows} rows to {out_path}")
                     pending = 0
+                    pending_rows = 0
                 print(f"[consumer] queued {len(recs)} records in buffer, pending write to {out_path}")
             except Exception as e:
                 print(f"[consumer] {e}")
