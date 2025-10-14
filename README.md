@@ -20,7 +20,7 @@ A node (Raspberry Pi 3B+) with integrated sensors, used to help monitor home act
   -v /home/node1/rssi-data:/data \
   -e TZ=Europe/London \
   -e IFACE=wlan0 \
-  -e INTERVAL="5" \
+  -e INTERVAL="0.1" \
   -e OUT=/data/wifi_rssi_log.csv \
   -e SSID="your-ssid" \
   -e LOCATION="your-location" \
