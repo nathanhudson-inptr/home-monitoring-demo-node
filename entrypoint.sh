@@ -19,6 +19,7 @@ set -- \
 [ -n "${LOCATION:-}" ]    && set -- "$@" --location "${LOCATION}"
 [ -n "${FULL_SCAN_MINS:-}" ] && set -- "$@" --full-scan-mins "${FULL_SCAN_MINS}"
 [ -n "${FLUSH_EVERY:-}" ]   && set -- "$@" --flush-every "${FLUSH_EVERY}"
+[ -n "${NODE_ID:-}" ]     && set -- "$@" --node-id "${NODE_ID}"
 
 echo "[entrypoint] Starting RSSI logger with args: $*"
 
