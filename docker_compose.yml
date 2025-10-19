@@ -11,7 +11,8 @@ services:
       TZ: Europe/London
       IFACE: wlan0              # interface to monitor (default on rpi: wlan0)
       INTERVAL: "0.1"             # sampling interval (default: 5) (note: numbers must be in "")
+      TIMEOUT: "3.0"
       OUT: /data/wifi_rssi_log.csv  # output file
       # Optional filters/tags:
-      SSID: "your-ssid"         # [optional] filter by ssid (must be in "")
-      LOCATION: "your-location"      # [optional] add node-location tag (must be in "")
+      TARGETS: "<SSID>, <SSID>"  # [optional] filter by ssid
+      NODE_ID: "NH-House"
