@@ -22,7 +22,6 @@ def parse_args():
     p.add_argument("--full-scan-mins", type=float, default=10.0, help="Full discovery cadence in minutes (default: 10)")
     p.add_argument("--flush-every", type=int, default=5, help="Flush CSV every N batches (default: 5)")
     p.add_argument("--node-id", type=str, help="Node ID (e.g. node1)")
-    print(f"[debug] node_ID: {p.parse_args().node_id}")
     return p.parse_args()
 
 # ---------- helpers: iw parsing ----------

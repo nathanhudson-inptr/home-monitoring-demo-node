@@ -15,4 +15,4 @@ services:
       OUT: /data/wifi_rssi_log.csv  # output file
       # Optional filters/tags:
       TARGETS: "<SSID>, <SSID>"  # [optional] filter by ssid
-      NODE_ID: "NH-House"
+      NODE_ID: "<node_id>"       # [optional] node id
