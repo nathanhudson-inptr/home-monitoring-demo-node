@@ -4,7 +4,7 @@ A node (Raspberry Pi 3B+) with integrated sensors, used to help monitor home act
 ### Pre-Requisites
 1. RPI Model 3B+ (or later)
 2. Download and install Docker (https://forums.docker.com/t/installation-steps-for-the-latest-raspberry-pi-os-64-bit/138838)
-3. Download and install Portainer (https://docs.portainer.io/start/install-ce/server/docker/linux)
+3. (Optional) Download and install Portainer (https://docs.portainer.io/start/install-ce/server/docker/linux)
 4. (Optional) SSH Setup with RPi to allow for CLI Remote access to RPI
 
 ### Getting Started
@@ -12,7 +12,6 @@ A node (Raspberry Pi 3B+) with integrated sensors, used to help monitor home act
 2. Create an empty .csv file, `touch ~/rssi-data/wifi_rssi_log.csv`
 3. Run `docker run -d \
   --name rssi-logger \
-  --pull always \
   --network host \
   --cap-add NET_ADMIN \
   --cap-add NET_RAW \
@@ -21,14 +20,20 @@ A node (Raspberry Pi 3B+) with integrated sensors, used to help monitor home act
   -e TZ=Europe/London \
   -e IFACE=wlan0 \
   -e INTERVAL="0.1" \
+  -e TIMEOUT="3.0" \
   -e OUT=/data/wifi_rssi_log.csv \
-  -e SSID="your-ssid" \
-  -e LOCATION="your-location" \
+  -e TARGETS="<SSID>, <SSID>" \
+  -e NODE_ID="<node-id>" \
   nathanhudsoninptr/home-monitoring-node:latest`
 
-   *Options: Replace with preferred value or comment out `#` if not used*
-   - `"your-ssid"` *Filter by SSID (default: None)*
-   - `"node-location"` *Add Location Tag (default: None)*
+   *Options:*
+   - `IFACE` *Network Interface (default: "wlan0")*
+   - `INTERVAL` *Minimum Time between scans (s) (default: "4.0")*
+   - `TIMEOUT` *Maximum time per scan (s) (default: "3.5")*
+   - `OUT` *Output path for scan results (default: /data/wifi_rssi_log.csv)*
+   - `TARGETS` *Scan a select set of SSID/s (default: None, [scan all])*
+   - `NODE_ID` *Node ID Tag (default: None)*
+
 4. Or, copy, paste and run the `docker-compose.yml` (found in this repo)
 
 ### Monitoring
