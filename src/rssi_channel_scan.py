@@ -113,10 +113,10 @@ def contextlib_silent():
 
 # ---------- CSV consumer with batching ----------
 
-async def consumer(queue: asyncio.Queue, out_path: str, flush_every: int, node: Optional[str] = None):
+async def consumer(queue: asyncio.Queue, out_path: str, flush_every: int, node_id: Optional[str] = None):
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
     header = ["timestamp_utc","iface","node","bssid","ssid","signal_dbm","freq_mhz","channel"]
-
+    
     # Large user-space buffer helps on SD cards
     wrote_header = os.path.exists(out_path) and os.path.getsize(out_path) > 0
     pending = 0
@@ -131,7 +131,7 @@ async def consumer(queue: asyncio.Queue, out_path: str, flush_every: int, node: 
             try:
                 if recs:
                     rows = [
-                        [ts, iface, node ,r.get("bssid"), r.get("ssid"),
+                        [ts, iface, node_id, r.get("bssid"), r.get("ssid"),
                          r.get("signal_dbm"), r.get("freq_mhz"), r.get("channel")]
                         for r in recs
                     ]
@@ -150,7 +150,8 @@ async def producer(queue: asyncio.Queue,
                    interval: float,
                    timeout: float,
                    targets: set[str],
-                   full_scan_every: timedelta):
+                   full_scan_every: timedelta,
+                   node_id: Optional[str] = None):
 
     # caches
     bssid_to_freq: Dict[str,int] = {}
@@ -159,6 +160,11 @@ async def producer(queue: asyncio.Queue,
 
     loop = asyncio.get_running_loop()
     backoff = 1.0
+
+    async def backoff_sleep():
+        nonlocal backoff
+        await asyncio.sleep(backoff)
+        backoff *= 1.5
 
     def want_record(r: Dict[str,Any]) -> bool:
         if not targets:
@@ -252,9 +258,10 @@ async def main():
 
     q: asyncio.Queue = asyncio.Queue(maxsize=2)
     prod = asyncio.create_task(
-        producer(q, args.iface, args.interval, args.timeout, targets, timedelta(minutes=args.full_scan_mins))
+        producer(q, args.iface, args.interval, args.timeout, targets, timedelta(minutes=args.full_scan_mins), node_id=args.node_id)
     )
-    cons = asyncio.create_task(consumer(q, args.out, args.flush_every, args.node_id))
+    cons = asyncio.create_task(consumer(q, args.out, args.flush_every, 
+                                        node_id=args.node_id))
 
     # Graceful shutdown on SIGINT/SIGTERM
     stop = asyncio.Event()
